@@ -1,25 +1,59 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, TextField } from '@skynexui/components';
 
 import appConfig from '../config.json';
 
 import { Header } from '../components/Header';
 import { MessageList } from '../components/MessageList';
+import { supabase } from '../services/supabase';
+
 
 
 export default function Chat() {
   const [message, setMessage] = useState('');
   const [messageList, setMessageList] = useState([]);
   
+
+  useEffect(() => {
+    supabase
+      .from('messages')
+      .select('*')
+      .order('id', { ascending: false })
+      .then((response) => {
+        // console.log(response.data);
+        const formattedData = response.data.map((message) => {
+          return {
+            id: message.id,
+            messageText: message.text_message,
+            from: message.from,
+          }
+        });
+
+        setMessageList(formattedData)
+      });
+  }, []);
+
+
   function handleNewMessage() {
-    const newMessage = {
-      id: messageList.length + 1,
-      messageText: message,
-      from: 'joaovitorJS'
-    };
-    setMessageList([newMessage, ...messageList]);
+    supabase
+      .from('messages')
+      .insert([
+        {
+          from: 'joaovitorJS',
+          text_message: message,
+        }
+      ])
+      .then(({ data }) => {
+        const newMessage = {
+          id: data[0].id,
+          messageText: data[0].text_message,
+          from: data[0].from,
+        }
+        
+        setMessageList([newMessage, ...messageList]);
+      })
+
     setMessage('');
-    
   }
 
   return (

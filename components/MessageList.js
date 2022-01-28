@@ -4,7 +4,7 @@ import { MessageItem } from './MessageItem';
 
 export function MessageList({messages}) {
   
-  return (
+  return (  
     <Box
       tag='ul'
       styleSheet={{
@@ -16,7 +16,7 @@ export function MessageList({messages}) {
         marginBottom: '16px'
       }}
     >
-      {messages.map((message) => {
+      {messages.length > 0 && messages.map((message) => {
         return <MessageItem key={message.id} message={message}/>
       })}
     </Box>
