@@ -38,7 +38,7 @@ export default function Home() {
   function handleSubmitForm(event) {
     event.preventDefault();
 
-    router.push('/chat');
+    router.push(`/chat?username=${username}`);
   }
 
   return (

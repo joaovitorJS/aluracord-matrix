@@ -1,18 +1,31 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+
 import { Box, TextField } from '@skynexui/components';
+import { supabase } from '../services/supabase';
 
 import appConfig from '../config.json';
 
 import { Header } from '../components/Header';
 import { MessageList } from '../components/MessageList';
-import { supabase } from '../services/supabase';
+import { ButtonSendSticker } from '../components/ButtonSendSticker';
 
 
+function listenRealtimeMessage(addingMessage) {
+  return supabase
+    .from('messages')
+    .on('INSERT', (response) => {
+      addingMessage(response.new)
+    })
+    .subscribe();
+}
 
 export default function Chat() {
+  const router = useRouter();
   const [message, setMessage] = useState('');
   const [messageList, setMessageList] = useState([]);
   
+  const username = router.query.username;
 
   useEffect(() => {
     supabase
@@ -31,26 +44,38 @@ export default function Chat() {
 
         setMessageList(formattedData)
       });
+
+      listenRealtimeMessage((newMessage) => {
+        const newMessageFormatted = {
+          id: newMessage.id,
+          messageText: newMessage.text_message,
+          from: newMessage.from,
+        }
+        
+        setMessageList((currentValueMessageList) => {
+          return [newMessageFormatted, ...currentValueMessageList];
+        });
+      });
   }, []);
 
 
-  function handleNewMessage() {
+  function handleNewMessage(messageParam) {
     supabase
       .from('messages')
       .insert([
         {
-          from: 'joaovitorJS',
-          text_message: message,
+          from: username,
+          text_message: messageParam,
         }
       ])
       .then(({ data }) => {
-        const newMessage = {
-          id: data[0].id,
-          messageText: data[0].text_message,
-          from: data[0].from,
-        }
+        // const newMessage = {
+        //   id: data[0].id,
+        //   messageText: data[0].text_message,
+        //   from: data[0].from,
+        // }
         
-        setMessageList([newMessage, ...messageList]);
+        // setMessageList([newMessage, ...messageList]);
       })
 
     setMessage('');
@@ -125,8 +150,14 @@ export default function Chat() {
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  handleNewMessage();
+                  handleNewMessage(message);
                 }
+              }}
+            />
+
+            <ButtonSendSticker 
+              onStickerClick={(sticker) => {
+                handleNewMessage(`:sticker: ${sticker}`);
               }}
             />
           </Box>

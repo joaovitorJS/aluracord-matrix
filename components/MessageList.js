@@ -8,7 +8,7 @@ export function MessageList({messages}) {
     <Box
       tag='ul'
       styleSheet={{
-        overflow: 'scrollX',
+        overflowY: 'scroll',
         display: 'flex',
         flexDirection: 'column-reverse',
         flex: 1,
